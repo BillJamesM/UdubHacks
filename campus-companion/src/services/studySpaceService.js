@@ -180,10 +180,10 @@ export const getChatResponse = async (message) => {
     "my reservations",
     "show my bookings",
     "do i have any bookings",
-    "rooms i booked"
+    "rooms i booked",
   ];
 
-  if (bookingsKeywords.some(kw => lowerMsg.includes(kw))) {
+  if (bookingsKeywords.some((kw) => lowerMsg.includes(kw))) {
     return {
       text: "Here's a list of your current bookings.",
       action: "showBookings",
@@ -193,7 +193,7 @@ export const getChatResponse = async (message) => {
 
   // 1. General study space inquiry
   if (lowerMsg.includes("availabe") || lowerMsg.includes("study space")) {
-    const names = studySpaces.map(space => space.name).join(', ');
+    const names = studySpaces.map((space) => space.name).join(", ");
     return {
       text: `Sure! Here are some available study spaces: ${names}`,
       action: "showStudySpaces",
@@ -205,9 +205,13 @@ export const getChatResponse = async (message) => {
   const matchByName = studySpaces.find((space) =>
     lowerMsg.includes(space.name.toLowerCase())
   );
-  if (matchByName ) {
+  if (matchByName) {
     return {
-      text: `The ${matchByName.name} in the ${matchByName.building}. It has a capacity of ${matchByName.capacity} and includes: ${matchByName.features.join(", ")}.`,
+      text: `The ${matchByName.name} in the ${
+        matchByName.building
+      }. It has a capacity of ${
+        matchByName.capacity
+      } and includes: ${matchByName.features.join(", ")}.`,
       mood: "happy",
     };
   }
@@ -228,16 +232,17 @@ export const getChatResponse = async (message) => {
       space.features.some((f) => f.toLowerCase().includes(foundKeyword))
     );
     if (matching.length > 0) {
-      const result = matching.map(s => s.name).join(', ');
+      const result = matching.map((s) => s.name).join(", ");
       return {
         text: `Rooms with ${foundKeyword}s: ${result}`,
+        action: "showStudySpaces",
         mood: "happy",
       };
     }
   }
 
   return {
-    text: `I'm not sure how to help with that. Try asking about available rooms, specific space names, or features like whiteboards or monitors.`,
-    mood: "neutral"
+    text: ``,
+    mood: "neutral",
   };
 };
