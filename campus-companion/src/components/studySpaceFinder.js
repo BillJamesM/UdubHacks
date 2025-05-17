@@ -34,21 +34,19 @@ import {
   List as ListIcon,
   LocationOn,
   People,
-  VolumeUp,
   Event,
   Check,
   BookmarkAdd,
 } from "@mui/icons-material";
 import { Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import LeafletMap from "./LeafletMap"; // Import the new helper component
+import LeafletMap from "./LeafletMap";
 import { getStudySpaces, bookStudySpace } from "../services/studySpaceService";
 
 const StudySpaceFinder = ({ initialFilters = {} }) => {
   const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    noiseLevel: initialFilters.noiseLevel || "any",
     minCapacity: initialFilters.minCapacity || 1,
     features: initialFilters.features || [],
     date: "2025-05-17", // Default to today for demo
@@ -138,19 +136,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
     }
   };
 
-  const getNoiseLevelColor = (level) => {
-    switch (level) {
-      case "quiet":
-        return "success";
-      case "moderate":
-        return "warning";
-      case "collaborative":
-        return "error";
-      default:
-        return "default";
-    }
-  };
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h2" gutterBottom>
@@ -183,22 +168,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
             <Typography variant="h6" gutterBottom>
               Filters
             </Typography>
-
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Noise Level</InputLabel>
-              <Select
-                value={filters.noiseLevel}
-                label="Noise Level"
-                onChange={(e) =>
-                  setFilters({ ...filters, noiseLevel: e.target.value })
-                }
-              >
-                <MenuItem value="any">Any</MenuItem>
-                <MenuItem value="quiet">Quiet</MenuItem>
-                <MenuItem value="moderate">Moderate</MenuItem>
-                <MenuItem value="collaborative">Collaborative</MenuItem>
-              </Select>
-            </FormControl>
 
             <FormControl fullWidth margin="normal">
               <InputLabel>Minimum Capacity</InputLabel>
@@ -285,7 +254,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
               elevation={3}
               sx={{ height: 500, borderRadius: 2, overflow: "hidden" }}
             >
-              {/* Use the LeafletMap component instead of MapContainer */}
               <LeafletMap
                 center={[40.7128, -74.006]}
                 zoom={15}
@@ -307,9 +275,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                         </Typography>
                         <Typography variant="body2">
                           Capacity: {space.capacity}
-                        </Typography>
-                        <Typography variant="body2">
-                          Noise Level: {space.noiseLevel}
                         </Typography>
                         <Button
                           size="small"
@@ -362,12 +327,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                         {space.building}
                       </Typography>
                       <Box sx={{ mb: 1 }}>
-                        <Chip
-                          label={space.noiseLevel}
-                          color={getNoiseLevelColor(space.noiseLevel)}
-                          size="small"
-                          sx={{ mr: 1 }}
-                        />
                         <Chip
                           icon={<People />}
                           label={`Capacity: ${space.capacity}`}
@@ -473,11 +432,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                 <Chip
                   icon={<People />}
                   label={`Capacity: ${selectedSpace.capacity}`}
-                />
-                <Chip
-                  icon={<VolumeUp />}
-                  label={`Noise Level: ${selectedSpace.noiseLevel}`}
-                  color={getNoiseLevelColor(selectedSpace.noiseLevel)}
                 />
               </Box>
 
