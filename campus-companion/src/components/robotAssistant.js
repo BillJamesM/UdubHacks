@@ -399,20 +399,12 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
             </Typography>
 
             {/* Session ID display */}
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+            {/* <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
               Session ID: {sessionId.substring(0, 8)}...
-            </Typography>
+            </Typography> */}
 
             {/* Log management buttons */}
             <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<CloudDownload />}
-                onClick={downloadChatLogs}
-              >
-                Download Logs
-              </Button>
               <Button
                 size="small"
                 variant="outlined"
