@@ -149,8 +149,6 @@ const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
       whiteboard: "whiteboard",
       monitors: "monitors",
       power_outlets: "power outlets",
-      natural_light: "natural light",
-      quiet: "soundproofing", // Mapping "quiet" filter to "soundproofing" feature
     };
     return featureMap[featureId] || featureId;
   };
@@ -159,19 +157,23 @@ const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
     { id: "whiteboard", label: "Whiteboard" },
     { id: "monitors", label: "Monitors/Displays" },
     { id: "power_outlets", label: "Power Outlets" },
-    { id: "natural_light", label: "Natural Light" },
-    { id: "quiet", label: "Quiet" },
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
       <Typography variant="h4" component="h2" gutterBottom>
         Find a Study Space
       </Typography>
 
-      <Grid container spacing={3}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          gap: 3,
+        }}
+      >
         {/* Filters Column */}
-        <Grid item xs={12} md={3}>
+        <Box sx={{ width: { xs: "100%", sm: "280px" }, flexShrink: 0 }}>
           <Paper elevation={3} sx={{ p: 2, position: "sticky", top: 20 }}>
             <Typography variant="h6" gutterBottom>
               Filters
@@ -246,10 +248,10 @@ const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
               Refresh Results
             </Button>
           </Paper>
-        </Grid>
+        </Box>
 
         {/* List Column */}
-        <Grid item xs={12} md={9}>
+        <Box sx={{ flexGrow: 1 }}>
           {loading ? (
             <Box
               sx={{
@@ -269,9 +271,20 @@ const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
               No study spaces match your criteria. Try adjusting your filters.
             </Alert>
           ) : (
-            <Grid container spacing={3}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", margin: "-12px" }}>
               {spaces.map((space) => (
-                <Grid item xs={12} sm={6} md={4} key={space.id}>
+                <Box
+                  key={space.id}
+                  sx={{
+                    width: {
+                      xs: "100%",
+                      sm: "50%",
+                      md: "50%",
+                      lg: "50%",
+                    },
+                    padding: "12px",
+                  }}
+                >
                   <Card
                     sx={{
                       height: "100%",
@@ -371,12 +384,12 @@ const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
                       </Button>
                     </CardActions>
                   </Card>
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           )}
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Booking Dialog */}
       <Dialog

@@ -173,27 +173,39 @@ export const getChatResponse = async (message) => {
 
   // 1. General study space inquiry
   if (lowerMsg.includes("availabe") || lowerMsg.includes("study space")) {
-    const names = studySpaces.map(space => space.name).join(', ');
+    const names = studySpaces.map((space) => space.name).join(", ");
     return `Sure! Here are some available study spaces: ${names}`;
   }
 
   // 2. Match by name
-  const matchByName = studySpaces.find(space =>
+  const matchByName = studySpaces.find((space) =>
     lowerMsg.includes(space.name.toLowerCase())
   );
-  if (matchByName ) {
-    return `The ${matchByName.name} in the ${matchByName.building}. It has a capacity of ${matchByName.capacity} and includes: ${matchByName.features.join(", ")}.`;
+  if (matchByName) {
+    return `The ${matchByName.name} in the ${
+      matchByName.building
+    }. It has a capacity of ${
+      matchByName.capacity
+    } and includes: ${matchByName.features.join(", ")}.`;
   }
 
   // 3. Match by feature keyword
-  const keywords = ['whiteboard', 'moniter', 'printer', 'ergonomic'];
-  const foundKeyword = keywords.find(kw => lowerMsg.includes(kw));
+  const keywords = [
+    "white boards",
+    "whiteboards",
+    "moniter",
+    "printer",
+    "ergonomic",
+    "power outlets",
+    "desk",
+  ];
+  const foundKeyword = keywords.find((kw) => lowerMsg.includes(kw));
   if (foundKeyword) {
-    const matching = studySpaces.filter(space =>
-      space.features.some(f => f.toLowerCase().includes(foundKeyword))
+    const matching = studySpaces.filter((space) =>
+      space.features.some((f) => f.toLowerCase().includes(foundKeyword))
     );
     if (matching.length > 0) {
-      const result = matching.map(s => s.name).join(', ');
+      const result = matching.map((s) => s.name).join(", ");
       return `Rooms with ${foundKeyword}s: ${result}`;
     }
   }
