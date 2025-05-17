@@ -96,6 +96,7 @@ function App() {
           >
             <Tab icon={<SmartToy />} label="Robot Assistant" />
             <Tab icon={<Map />} label="Study Spaces" />
+            <Tab icon={<Event />} label="Campus Events" />
           </Tabs>
         </AppBar>
 
