@@ -25,11 +25,22 @@ import {
   Alert,
   Box,
   CircularProgress,
+  Badge,
+  Snackbar,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import { People, Event, Check, BookmarkAdd } from "@mui/icons-material";
+import {
+  People,
+  Event,
+  Check,
+  BookmarkAdd,
+  Assignment,
+  Refresh,
+} from "@mui/icons-material";
 import { getStudySpaces, bookStudySpace } from "../services/studySpaceService";
 
-const StudySpaceFinder = ({ initialFilters = {} }) => {
+const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
   const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -42,9 +53,21 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [bookingStatus, setBookingStatus] = useState(null);
 
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+
   useEffect(() => {
     fetchSpaces();
   }, [filters]);
+
+  // Show success notification when a booking is made
+  useEffect(() => {
+    if (bookingSuccess) {
+      const timer = setTimeout(() => {
+        setBookingSuccess(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [bookingSuccess]);
 
   const fetchSpaces = async () => {
     setLoading(true);
@@ -90,6 +113,14 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
           setBookingDialogOpen(false);
           setBookingStatus(null);
           fetchSpaces(); // This now should show updated availability
+
+          // Notify parent component if provided
+          if (onBookingSuccess) {
+            onBookingSuccess();
+          }
+
+          // Set success flag for snackbar notification
+          setBookingSuccess(true);
         }, 2000);
       }
     } catch (error) {
@@ -118,8 +149,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
       whiteboard: "whiteboard",
       monitors: "monitors",
       power_outlets: "power outlets",
-      natural_light: "natural light",
-      quiet: "soundproofing", // Mapping "quiet" filter to "soundproofing" feature
     };
     return featureMap[featureId] || featureId;
   };
@@ -128,19 +157,23 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
     { id: "whiteboard", label: "Whiteboard" },
     { id: "monitors", label: "Monitors/Displays" },
     { id: "power_outlets", label: "Power Outlets" },
-    { id: "natural_light", label: "Natural Light" },
-    { id: "quiet", label: "Quiet" },
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
       <Typography variant="h4" component="h2" gutterBottom>
         Find a Study Space
       </Typography>
 
-      <Grid container spacing={3}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          gap: 3,
+        }}
+      >
         {/* Filters Column */}
-        <Grid item xs={12} md={3}>
+        <Box sx={{ width: { xs: "100%", sm: "280px" }, flexShrink: 0 }}>
           <Paper elevation={3} sx={{ p: 2, position: "sticky", top: 20 }}>
             <Typography variant="h6" gutterBottom>
               Filters
@@ -210,14 +243,15 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
               fullWidth
               sx={{ mt: 2 }}
               onClick={fetchSpaces}
+              startIcon={<Refresh />}
             >
               Refresh Results
             </Button>
           </Paper>
-        </Grid>
+        </Box>
 
         {/* List Column */}
-        <Grid item xs={12} md={9}>
+        <Box sx={{ flexGrow: 1 }}>
           {loading ? (
             <Box
               sx={{
@@ -237,9 +271,20 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
               No study spaces match your criteria. Try adjusting your filters.
             </Alert>
           ) : (
-            <Grid container spacing={3}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", margin: "-12px" }}>
               {spaces.map((space) => (
-                <Grid item xs={12} sm={6} md={4} key={space.id}>
+                <Box
+                  key={space.id}
+                  sx={{
+                    width: {
+                      xs: "100%",
+                      sm: "50%",
+                      md: "50%",
+                      lg: "50%",
+                    },
+                    padding: "12px",
+                  }}
+                >
                   <Card
                     sx={{
                       height: "100%",
@@ -339,12 +384,12 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                       </Button>
                     </CardActions>
                   </Card>
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           )}
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Booking Dialog */}
       <Dialog
@@ -469,6 +514,15 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={bookingSuccess}
+        autoHideDuration={5000}
+        onClose={() => setBookingSuccess(false)}
+        message="Room booked successfully! View in 'My Bookings' tab."
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Container>
   );
 };
