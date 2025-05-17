@@ -210,5 +210,5 @@ export const getChatResponse = async (message) => {
     }
   }
 
-  return `I'm not sure how to help with that. Try asking about available rooms, specific space names, or features like whiteboards or monitors.`;
+  return `I'm not sure how to help with that.`;
 };
