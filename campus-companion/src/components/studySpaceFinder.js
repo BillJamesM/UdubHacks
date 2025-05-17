@@ -225,7 +225,7 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                   >
                     <CardMedia
                       component="img"
-                      height="140"
+                      height="300"
                       image={space.imageUrl}
                       alt={space.name}
                     />

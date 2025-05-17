@@ -1,7 +1,7 @@
 export const studySpaces = [
   {
-    id: "lib-202",
-    name: "Library Study Room 202",
+    id: "CP-324A",
+    name: "CP-324A",
     building: "Main Library",
     capacity: 4,
     features: ["whiteboard", "monitors", "power outlets"],
@@ -21,12 +21,13 @@ export const studySpaces = [
       },
     ],
     coordinates: { lat: 40.7128, lng: -74.006 },
-    imageUrl: "https://via.placeholder.com/150?text=Study+Room",
+    imageUrl:
+      "https://25live.collegenet.com/25live/data/washington/run/image?image_id=1035",
   },
   {
-    id: "sc-101",
-    name: "Science Center Collaboration Room",
-    building: "Science Center",
+    id: "CP-324B",
+    name: "CP-324B",
+    building: "Cherry Parks",
     capacity: 8,
     features: [
       "whiteboard",
@@ -50,11 +51,12 @@ export const studySpaces = [
       },
     ],
     coordinates: { lat: 40.7138, lng: -74.008 },
-    imageUrl: "https://via.placeholder.com/150?text=Collaboration+Room",
+    imageUrl:
+      "https://25live.collegenet.com/25live/data/washington/run/image?image_id=1035",
   },
   {
-    id: "stu-lounge",
-    name: "Student Union Quiet Lounge",
+    id: "CP-324C",
+    name: "CP-324C",
     building: "Student Union",
     capacity: 20,
     features: [
@@ -79,11 +81,12 @@ export const studySpaces = [
       },
     ],
     coordinates: { lat: 40.712, lng: -74.005 },
-    imageUrl: "https://via.placeholder.com/150?text=Student+Lounge",
+    imageUrl:
+      "https://25live.collegenet.com/25live/data/washington/run/image?image_id=41",
   },
   {
-    id: "eng-005",
-    name: "Engineering Building Focus Room",
+    id: "MDS-302",
+    name: "MDS-302",
     building: "Engineering Building",
     capacity: 2,
     features: ["desk", "ergonomic chairs", "power outlets", "soundproofing"],
@@ -103,7 +106,8 @@ export const studySpaces = [
       },
     ],
     coordinates: { lat: 40.7145, lng: -74.004 },
-    imageUrl: "https://via.placeholder.com/150?text=Focus+Room",
+    imageUrl:
+      "https://25live.collegenet.com/25live/data/washington/run/image?image_id=41",
   },
   {
     id: "lib-commons",
@@ -127,6 +131,7 @@ export const studySpaces = [
       },
     ],
     coordinates: { lat: 40.7128, lng: -74.0065 },
-    imageUrl: "https://via.placeholder.com/150?text=Library+Commons",
+    imageUrl:
+      "https://25live.collegenet.com/25live/data/washington/run/image?image_id=988",
   },
 ];
