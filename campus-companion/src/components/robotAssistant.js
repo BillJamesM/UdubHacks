@@ -19,7 +19,7 @@ import {
 import { Mic, MicOff, Send, SmartToy, Person } from "@mui/icons-material";
 import { getChatResponse } from "../services/studySpaceService"; // Assuming you have an API function to get chat responses
 
-const RobotAssistant = ({ onStudySpaceSearch }) => {
+const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
   const [input, setInput] = useState("");
   const [conversation, setConversation] = useState([
     {
@@ -111,40 +111,44 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
       onStudySpaceSearch(response.filters || {});
     }
 
+     // Action: Show Bookings
+    if (response.action === "showBookings") {
+      if (typeof onShowBookings === "function") {
+        onShowBookings();
+      }
+    }
+
     // Reset bot mood
     setBotMood(response.mood || "neutral");
   };
 
   const processUserInput = async (text) => {
-    const responseText = await getChatResponse(text);
+    const response = await getChatResponse(text);
     const lowerText = text.toLowerCase();
 
-    if (
-    lowerText.includes("study") ||
-    lowerText.includes("library") ||
-    lowerText.includes("quiet place") ||
-    lowerText.includes("room")
-    ) {
-    const filters = {
-      noiseLevel: lowerText.includes("quiet")
-        ? "quiet"
-        : lowerText.includes("collaborative")
-        ? "collaborative"
-        : "any",
-    };
+    // If the action is for study spaces, apply filter logic
+    if (response.action === "showStudySpaces") {
+      const filters = {
+        noiseLevel: lowerText.includes("quiet")
+          ? "quiet"
+          : lowerText.includes("collaborative")
+          ? "collaborative"
+          : "any",
+      };
 
-    return {
-      text: responseText,     // now using the actual smart reply
-      action: "showStudySpaces",
-      filters,
-      mood: "happy",
-    };
-  }
+      return {
+        text: response.text,
+        action: "showStudySpaces",
+        filters,
+        mood: response.mood || "happy",
+      };
+    }
 
-    // Fallback for other queries
+    // For other cases like "showBookings", just return the response
     return {
-      text: responseText,
-      mood: "neutral",
+      text: response.text,
+      action: response.action,
+      mood: response.mood || "neutral",
     };
   };
 

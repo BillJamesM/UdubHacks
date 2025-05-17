@@ -1,4 +1,5 @@
 import { studySpaces } from "../data/studySpaces";
+//import { getUserBookings } from "./studySpaceService";
 
 // Simulated delay to mimic real API
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -171,10 +172,33 @@ export const getChatResponse = async (message) => {
 
   const lowerMsg = message.toLowerCase();
 
+  // 1. Check the Bookings intent
+  const bookingsKeywords = [
+    "what rooms do i have",
+    "my bookings",
+    "what have i booked",
+    "my reservations",
+    "show my bookings",
+    "do i have any bookings",
+    "rooms i booked"
+  ];
+
+  if (bookingsKeywords.some(kw => lowerMsg.includes(kw))) {
+    return {
+      text: "Here's a list of your current bookings.",
+      action: "showBookings",
+      mood: "neutral",
+    };
+  }
+
   // 1. General study space inquiry
   if (lowerMsg.includes("availabe") || lowerMsg.includes("study space")) {
     const names = studySpaces.map(space => space.name).join(', ');
-    return `Sure! Here are some available study spaces: ${names}`;
+    return {
+      text: `Sure! Here are some available study spaces: ${names}`,
+      action: "showStudySpaces",
+      mood: "happy",
+    };
   }
 
   // 2. Match by name
@@ -182,7 +206,10 @@ export const getChatResponse = async (message) => {
     lowerMsg.includes(space.name.toLowerCase())
   );
   if (matchByName ) {
-    return `The ${matchByName.name} in the ${matchByName.building}. It has a capacity of ${matchByName.capacity} and includes: ${matchByName.features.join(", ")}.`;
+    return {
+      text: `The ${matchByName.name} in the ${matchByName.building}. It has a capacity of ${matchByName.capacity} and includes: ${matchByName.features.join(", ")}.`,
+      mood: "happy",
+    };
   }
 
   // 3. Match by feature keyword
@@ -194,9 +221,15 @@ export const getChatResponse = async (message) => {
     );
     if (matching.length > 0) {
       const result = matching.map(s => s.name).join(', ');
-      return `Rooms with ${foundKeyword}s: ${result}`;
+      return {
+        text: `Rooms with ${foundKeyword}s: ${result}`,
+        mood: "happy",
+      };
     }
   }
 
-  return `I'm not sure how to help with that. Try asking about available rooms, specific space names, or features like whiteboards or monitors.`;
+  return {
+    text: `I'm not sure how to help with that. Try asking about available rooms, specific space names, or features like whiteboards or monitors.`,
+    mood: "neutral"
+  };
 };
