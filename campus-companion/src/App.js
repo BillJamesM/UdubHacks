@@ -11,9 +11,10 @@ import {
   createTheme,
   Box,
 } from "@mui/material";
-import { SmartToy, Map } from "@mui/icons-material";
+import { SmartToy, Map, Event } from "@mui/icons-material";
 import RobotAssistant from "./components/robotAssistant";
 import StudySpaceFinder from "./components/studySpaceFinder";
+import EventCurator from "./components/eventCurator";
 
 // Create a theme with Material Design colors
 const theme = createTheme({
@@ -61,6 +62,7 @@ function App() {
           >
             <Tab icon={<SmartToy />} label="Robot Assistant" />
             <Tab icon={<Map />} label="Study Spaces" />
+            <Tab icon={<Event />} label="Event Curator" />
           </Tabs>
         </AppBar>
 
@@ -71,6 +73,9 @@ function App() {
 
           {activeTab === 1 && (
             <StudySpaceFinder initialFilters={studySpaceFilters} />
+          )}
+          {activeTab === 2 && (
+            <EventCurator  />
           )}
         </Container>
       </Box>
