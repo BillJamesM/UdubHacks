@@ -16,6 +16,7 @@ import { SmartToy, Map, BookmarkBorder, Event } from "@mui/icons-material";
 import RobotAssistant from "./components/robotAssistant";
 import StudySpaceFinder from "./components/studySpaceFinder";
 import UserBookings from "./components/userBookings";
+import EventCurator from "./components/eventCurator";
 
 // Create a theme with Material Design colors
 const theme = createTheme({
@@ -117,6 +118,9 @@ function App() {
               onBookingChange={handleBookingChange}
               key={`user-bookings-${refreshCounter}`}
             />
+          )}
+          {activeTab === 2 && (
+            <EventCurator  />
           )}
         </Container>
       </Box>
