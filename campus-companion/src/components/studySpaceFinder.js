@@ -25,11 +25,22 @@ import {
   Alert,
   Box,
   CircularProgress,
+  Badge,
+  Snackbar,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import { People, Event, Check, BookmarkAdd } from "@mui/icons-material";
+import {
+  People,
+  Event,
+  Check,
+  BookmarkAdd,
+  Assignment,
+  Refresh,
+} from "@mui/icons-material";
 import { getStudySpaces, bookStudySpace } from "../services/studySpaceService";
 
-const StudySpaceFinder = ({ initialFilters = {} }) => {
+const StudySpaceFinder = ({ initialFilters = {}, onBookingSuccess }) => {
   const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -42,9 +53,21 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [bookingStatus, setBookingStatus] = useState(null);
 
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+
   useEffect(() => {
     fetchSpaces();
   }, [filters]);
+
+  // Show success notification when a booking is made
+  useEffect(() => {
+    if (bookingSuccess) {
+      const timer = setTimeout(() => {
+        setBookingSuccess(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [bookingSuccess]);
 
   const fetchSpaces = async () => {
     setLoading(true);
@@ -90,6 +113,14 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
           setBookingDialogOpen(false);
           setBookingStatus(null);
           fetchSpaces(); // This now should show updated availability
+
+          // Notify parent component if provided
+          if (onBookingSuccess) {
+            onBookingSuccess();
+          }
+
+          // Set success flag for snackbar notification
+          setBookingSuccess(true);
         }, 2000);
       }
     } catch (error) {
@@ -210,6 +241,7 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
               fullWidth
               sx={{ mt: 2 }}
               onClick={fetchSpaces}
+              startIcon={<Refresh />}
             >
               Refresh Results
             </Button>
@@ -469,6 +501,15 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={bookingSuccess}
+        autoHideDuration={5000}
+        onClose={() => setBookingSuccess(false)}
+        message="Room booked successfully! View in 'My Bookings' tab."
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Container>
   );
 };
