@@ -11,7 +11,7 @@ import {
   createTheme,
   Box,
 } from "@mui/material";
-import { SmartToy, Map } from "@mui/icons-material";
+import { SmartToy, Map, Event } from "@mui/icons-material";
 import RobotAssistant from "./components/robotAssistant";
 import StudySpaceFinder from "./components/studySpaceFinder";
 
@@ -61,6 +61,7 @@ function App() {
           >
             <Tab icon={<SmartToy />} label="Robot Assistant" />
             <Tab icon={<Map />} label="Study Spaces" />
+            <Tab icon={<Event />} label="Event Curator" />
           </Tabs>
         </AppBar>
 
