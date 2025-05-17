@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CssBaseline,
   AppBar,
@@ -12,10 +12,11 @@ import {
   Box,
   Badge,
 } from "@mui/material";
-import { SmartToy, Map, BookmarkBorder } from "@mui/icons-material";
+import { SmartToy, Map, BookmarkBorder, Event } from "@mui/icons-material";
 import RobotAssistant from "./components/robotAssistant";
 import StudySpaceFinder from "./components/studySpaceFinder";
 import UserBookings from "./components/userBookings";
+import EventCurator from "./components/eventCurator";
 
 // Create a theme with Material Design colors
 const theme = createTheme({
@@ -70,7 +71,7 @@ function App() {
   };
 
   // Update bookings count when component mounts
-  React.useEffect(() => {
+  useEffect(() => {
     updateBookingsCount();
   }, [refreshCounter]);
 
@@ -103,6 +104,7 @@ function App() {
               }
               label="My Bookings"
             />
+            <Tab icon={<Event />} label="Events" />
           </Tabs>
         </AppBar>
 
@@ -129,6 +131,8 @@ function App() {
               key={`user-bookings-${refreshCounter}`}
             />
           )}
+
+          {activeTab === 3 && <EventCurator />}
         </Container>
       </Box>
     </ThemeProvider>
