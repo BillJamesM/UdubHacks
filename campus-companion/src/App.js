@@ -10,10 +10,12 @@ import {
   ThemeProvider,
   createTheme,
   Box,
+  Badge,
 } from "@mui/material";
-import { SmartToy, Map } from "@mui/icons-material";
+import { SmartToy, Map, BookmarkBorder } from "@mui/icons-material";
 import RobotAssistant from "./components/robotAssistant";
 import StudySpaceFinder from "./components/studySpaceFinder";
+import UserBookings from "./components/userBookings";
 
 // Create a theme with Material Design colors
 const theme = createTheme({
@@ -30,6 +32,11 @@ const theme = createTheme({
 function App() {
   const [activeTab, setActiveTab] = useState(0);
   const [studySpaceFilters, setStudySpaceFilters] = useState({});
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const [bookingsCount, setBookingsCount] = useState(0);
+
+  // Demo user ID - in a real app this would come from authentication
+  const userId = "demo-user-id";
 
   const handleStudySpaceSearch = (filters) => {
     setStudySpaceFilters(filters);
@@ -39,6 +46,33 @@ function App() {
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
+
+  const handleBookingChange = () => {
+    // Increment counter to trigger refreshes in components
+    setRefreshCounter((prev) => prev + 1);
+
+    // Force refresh bookings count after a short delay
+    setTimeout(() => {
+      updateBookingsCount();
+    }, 500);
+  };
+
+  // Function to update the bookings count badge
+  const updateBookingsCount = async () => {
+    try {
+      // Import dynamically to avoid circular dependencies
+      const { getUserBookings } = await import("./services/studySpaceService");
+      const bookings = await getUserBookings(userId);
+      setBookingsCount(bookings.length);
+    } catch (error) {
+      console.error("Error fetching bookings count:", error);
+    }
+  };
+
+  // Update bookings count when component mounts
+  React.useEffect(() => {
+    updateBookingsCount();
+  }, [refreshCounter]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -61,6 +95,14 @@ function App() {
           >
             <Tab icon={<SmartToy />} label="Robot Assistant" />
             <Tab icon={<Map />} label="Study Spaces" />
+            <Tab
+              icon={
+                <Badge badgeContent={bookingsCount} color="secondary">
+                  <BookmarkBorder />
+                </Badge>
+              }
+              label="My Bookings"
+            />
           </Tabs>
         </AppBar>
 
@@ -70,7 +112,19 @@ function App() {
           )}
 
           {activeTab === 1 && (
-            <StudySpaceFinder initialFilters={studySpaceFilters} />
+            <StudySpaceFinder
+              initialFilters={studySpaceFilters}
+              onBookingSuccess={handleBookingChange}
+              key={`study-finder-${refreshCounter}`}
+            />
+          )}
+
+          {activeTab === 2 && (
+            <UserBookings
+              userId={userId}
+              onBookingChange={handleBookingChange}
+              key={`user-bookings-${refreshCounter}`}
+            />
           )}
         </Container>
       </Box>
