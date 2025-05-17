@@ -110,7 +110,10 @@ function App() {
 
         <Container sx={{ mt: 3 }}>
           {activeTab === 0 && (
-            <RobotAssistant onStudySpaceSearch={handleStudySpaceSearch} />
+            <RobotAssistant 
+              onStudySpaceSearch={handleStudySpaceSearch} 
+              onShowBookings={() => setActiveTab(2)}
+            />
           )}
 
           {activeTab === 1 && (

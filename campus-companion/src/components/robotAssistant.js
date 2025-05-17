@@ -30,8 +30,8 @@ import { getChatResponse } from "../services/studySpaceService"; // Assuming you
 // Add these imports if you want to save logs to server
 // import { saveConversationLogs } from "../services/logService";
 
-const RobotAssistant = ({ onStudySpaceSearch }) => {
-  // Generate a unique session ID for this conversation
+const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
+    // Generate a unique session ID for this conversation
   const [sessionId] = useState(() => {
     const savedSessionId = localStorage.getItem("chatSessionId");
     return (
@@ -39,7 +39,6 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
       `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     );
   });
-
   const [input, setInput] = useState("");
   const [conversation, setConversation] = useState(() => {
     // Try to load saved conversation from localStorage
@@ -206,10 +205,17 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
       // Text to speech for response
       speak(response.text);
 
-      // Execute any actions from the response
-      if (response.action === "showStudySpaces") {
-        onStudySpaceSearch(response.filters || {});
+    // Execute any actions from the response
+    if (response.action === "showStudySpaces") {
+      onStudySpaceSearch(response.filters || {});
+    }
+
+     // Action: Show Bookings
+    if (response.action === "showBookings") {
+      if (typeof onShowBookings === "function") {
+        onShowBookings();
       }
+    }
 
       // Reset bot mood
       setBotMood(response.mood || "neutral");
@@ -233,15 +239,11 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
   };
 
   const processUserInput = async (text) => {
-    const responseText = await getChatResponse(text);
+    const response = await getChatResponse(text);
     const lowerText = text.toLowerCase();
 
-    if (
-      lowerText.includes("study") ||
-      lowerText.includes("library") ||
-      lowerText.includes("quiet place") ||
-      lowerText.includes("room")
-    ) {
+    // If the action is for study spaces, apply filter logic
+    if (response.action === "showStudySpaces") {
       const filters = {
         noiseLevel: lowerText.includes("quiet")
           ? "quiet"
@@ -250,18 +252,19 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
           : "any",
       };
 
-      return {
-        text: responseText, // now using the actual smart reply
-        action: "showStudySpaces",
-        filters,
-        mood: "happy",
-      };
-    }
-
-    // Fallback for other queries
     return {
-      text: responseText,
-      mood: "neutral",
+      text: responseText,     // now using the actual smart reply
+      action: "showStudySpaces",
+      filters,
+      mood: "happy",
+    };
+  }
+
+    // For other cases like "showBookings", just return the response
+    return {
+      text: response.text,
+      action: response.action,
+      mood: response.mood || "neutral",
     };
   };
 
