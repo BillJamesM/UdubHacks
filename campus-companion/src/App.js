@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CssBaseline,
   AppBar,
@@ -71,7 +71,7 @@ function App() {
   };
 
   // Update bookings count when component mounts
-  React.useEffect(() => {
+  useEffect(() => {
     updateBookingsCount();
   }, [refreshCounter]);
 
@@ -96,6 +96,15 @@ function App() {
           >
             <Tab icon={<SmartToy />} label="Robot Assistant" />
             <Tab icon={<Map />} label="Study Spaces" />
+            <Tab
+              icon={
+                <Badge badgeContent={bookingsCount} color="secondary">
+                  <BookmarkBorder />
+                </Badge>
+              }
+              label="My Bookings"
+            />
+            <Tab icon={<Event />} label="Events" />
           </Tabs>
         </AppBar>
 
@@ -119,9 +128,8 @@ function App() {
               key={`user-bookings-${refreshCounter}`}
             />
           )}
-          {activeTab === 2 && (
-            <EventCurator  />
-          )}
+
+          {activeTab === 3 && <EventCurator />}
         </Container>
       </Box>
     </ThemeProvider>
