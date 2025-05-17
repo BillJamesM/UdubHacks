@@ -17,6 +17,7 @@ import {
   Chip,
 } from "@mui/material";
 import { Mic, MicOff, Send, SmartToy, Person } from "@mui/icons-material";
+import { getChatResponse } from "../services/studySpaceService"; // Assuming you have an API function to get chat responses
 
 const RobotAssistant = ({ onStudySpaceSearch }) => {
   const [input, setInput] = useState("");
@@ -115,35 +116,34 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
   };
 
   const processUserInput = async (text) => {
+    const responseText = await getChatResponse(text);
     const lowerText = text.toLowerCase();
 
-    // Look for study space related queries
     if (
-      lowerText.includes("study") ||
-      lowerText.includes("library") ||
-      lowerText.includes("quiet place") ||
-      lowerText.includes("room")
+    lowerText.includes("study") ||
+    lowerText.includes("library") ||
+    lowerText.includes("quiet place") ||
+    lowerText.includes("room")
     ) {
-      // Extract some basic parameters
-      const filters = {
-        noiseLevel: lowerText.includes("quiet")
-          ? "quiet"
-          : lowerText.includes("collaborative")
-          ? "collaborative"
-          : "any",
-      };
+    const filters = {
+      noiseLevel: lowerText.includes("quiet")
+        ? "quiet"
+        : lowerText.includes("collaborative")
+        ? "collaborative"
+        : "any",
+    };
 
-      return {
-        text: `I've found some study spaces that might work for you! You can filter them further or book one that you like.`,
-        action: "showStudySpaces",
-        filters: filters,
-        mood: "happy",
-      };
-    }
+    return {
+      text: responseText,     // now using the actual smart reply
+      action: "showStudySpaces",
+      filters,
+      mood: "happy",
+    };
+  }
 
     // Fallback for other queries
     return {
-      text: "I can help you find study spaces on campus. Just ask me something like 'Find me a quiet place to study' or 'I need a collaborative space for my group project'.",
+      text: responseText,
       mood: "neutral",
     };
   };

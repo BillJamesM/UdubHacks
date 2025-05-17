@@ -115,3 +115,38 @@ export const getUserBookings = async (userId) => {
 
   return userBookings;
 };
+
+export const getChatResponse = async (message) => {
+  await delay(400); // Stimulate response delay
+
+  const lowerMsg = message.toLowerCase();
+
+  // 1. General study space inquiry
+  if (lowerMsg.includes("availabe") || lowerMsg.includes("study space")) {
+    const names = studySpaces.map(space => space.name).join(', ');
+    return `Sure! Here are some available study spaces: ${names}`;
+  }
+
+  // 2. Match by name
+  const matchByName = studySpaces.find(space =>
+    lowerMsg.includes(space.name.toLowerCase())
+  );
+  if (matchByName ) {
+    return `The ${matchByName.name} in the ${matchByName.building}. It has a capacity of ${matchByName.capacity} and includes: ${matchByName.features.join(", ")}.`;
+  }
+
+  // 3. Match by feature keyword
+  const keywords = ['whiteboard', 'moniter', 'printer', 'ergonomic'];
+  const foundKeyword = keywords.find(kw => lowerMsg.includes(kw));
+  if (foundKeyword) {
+    const matching = studySpaces.filter(space =>
+      space.features.some(f => f.toLowerCase().includes(foundKeyword))
+    );
+    if (matching.length > 0) {
+      const result = matching.map(s => s.name).join(', ');
+      return `Rooms with ${foundKeyword}s: ${result}`;
+    }
+  }
+
+  return `I'm not sure how to help with that. Try asking about available rooms, specific space names, or features like whiteboards or monitors.`;
+};
