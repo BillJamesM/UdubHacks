@@ -220,8 +220,12 @@ export const getChatResponse = async (message) => {
   const keywords = [
     "white boards",
     "whiteboards",
-    "moniter",
+    "white board",
+    "whiteboard",
+    "monitor",
+    "monitors",
     "printer",
+    "printers",
     "ergonomic",
     "power outlets",
     "desk",

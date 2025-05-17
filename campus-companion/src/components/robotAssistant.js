@@ -24,6 +24,7 @@ import {
   Delete,
   Room,
   Bookmark,
+  Event,
 } from "@mui/icons-material";
 import { getChatResponse } from "../services/studySpaceService"; // Assuming you have an API function to get chat responses
 
@@ -67,7 +68,11 @@ const getChatResponse = async (text) => {
 };
 */
 
-const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
+const RobotAssistant = ({
+  onStudySpaceSearch,
+  onShowBookings,
+  onShowEvents,
+}) => {
   // Generate a unique session ID for this conversation
   const [sessionId] = useState(() => {
     const savedSessionId = localStorage.getItem("chatSessionId");
@@ -86,7 +91,7 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
           {
             role: "assistant",
             content:
-              "Hi there! I'm your Campus Companion. How can I help you today? Ask me about finding a study space or checking your bookings.",
+              "Hi there! I'm your Campus Companion. How can I help you today? Ask me about finding a study space, checking your bookings, or campus events.",
             timestamp: new Date().toISOString(),
           },
         ];
@@ -102,8 +107,9 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
     console.log("RobotAssistant mounted with props:", {
       hasOnStudySpaceSearch: typeof onStudySpaceSearch === "function",
       hasOnShowBookings: typeof onShowBookings === "function",
+      hasOnShowEvents: typeof onShowEvents === "function",
     });
-  }, [onStudySpaceSearch, onShowBookings]);
+  }, [onStudySpaceSearch, onShowBookings, onShowEvents]);
 
   // Save session ID to localStorage when it's created
   useEffect(() => {
@@ -230,6 +236,28 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
     }
   };
 
+  const directNavToEvents = () => {
+    console.log("Direct navigation to events");
+    if (typeof onShowEvents === "function") {
+      onShowEvents();
+
+      // Optional: Add a message to the conversation about this action
+      setConversation((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Here are the upcoming campus events you might be interested in.",
+          timestamp: new Date().toISOString(),
+          action: "showEvents",
+        },
+      ]);
+    } else {
+      console.error("onShowEvents is not a function");
+      alert("Events function is not available");
+    }
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     console.log("Form submitted with input:", input);
@@ -316,6 +344,15 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
             console.error("onShowBookings is not a function");
           }
         }
+
+        if (response.action === "showEvents") {
+          console.log("Executing showEvents");
+          if (typeof onShowEvents === "function") {
+            onShowEvents();
+          } else {
+            console.error("onShowEvents is not a function");
+          }
+        }
       }, 500); // 500ms delay to ensure state updates have completed
 
       // Reset bot mood
@@ -356,6 +393,24 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
         lowerText.includes("cp-324c") ||
         lowerText.includes("mds-302") ||
         lowerText.includes("library commons");
+
+      // Check if the message is about events
+      if (
+        lowerText.includes("event") ||
+        lowerText.includes("happening") ||
+        lowerText.includes("activities") ||
+        lowerText.includes("campus events") ||
+        lowerText.includes("what's going on") ||
+        response.action === "showEvents"
+      ) {
+        console.log("Detected events request");
+
+        return {
+          text: response.text || "Let me show you the upcoming campus events.",
+          action: "showEvents",
+          mood: "happy",
+        };
+      }
 
       // Check if we need to handle study spaces
       if (
@@ -468,7 +523,7 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
       return {
         text:
           response.text ||
-          `I understand you're looking for assistance. I can help you find study spaces on campus or check your current bookings. What would you like to do?`,
+          `I understand you're looking for assistance. I can help you find study spaces on campus, check your current bookings, or show you upcoming events. What would you like to do?`,
         action: response.action,
         mood: response.mood || "neutral",
       };
@@ -476,7 +531,7 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
       console.error("Error in processUserInput:", error);
       // Provide a fallback response
       return {
-        text: "I'm having trouble understanding your request right now. Would you like to see available study spaces or check your bookings?",
+        text: "I'm having trouble understanding your request right now. Would you like to see available study spaces, check your bookings, or view campus events?",
         mood: "confused",
       };
     }
@@ -514,7 +569,7 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
       const initialMessage = {
         role: "assistant",
         content:
-          "Hi there! I'm your Campus Companion. How can I help you today? Ask me about finding a study space or checking your bookings.",
+          "Hi there! I'm your Campus Companion. How can I help you today? Ask me about finding a study space, checking your bookings, or campus events.",
         timestamp: new Date().toISOString(),
       };
 
@@ -599,70 +654,6 @@ const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
             >
               Ask me to find you a study space, or help with campus information!
             </Typography>
-
-            {/* Debug/Navigation buttons */}
-            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-              <Button
-                variant="outlined"
-                startIcon={<Room />}
-                onClick={directNavToStudySpaces}
-              >
-                Study Spaces
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Bookmark />}
-                onClick={directNavToBookings}
-              >
-                My Bookings
-              </Button>
-            </Box>
-
-            {/* Quick suggestions */}
-            <Box
-              sx={{
-                mb: 3,
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-                width: "100%",
-                maxWidth: "300px",
-              }}
-            >
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                align="center"
-              >
-                Quick Questions:
-              </Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                color="primary"
-                onClick={() => handleUserInput("Find me a quiet study space")}
-              >
-                Find a quiet study space
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                color="primary"
-                onClick={() =>
-                  handleUserInput("I need a room with a whiteboard")
-                }
-              >
-                Room with whiteboard
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                color="primary"
-                onClick={() => handleUserInput("Show me my reservations")}
-              >
-                Show my reservations
-              </Button>
-            </Box>
 
             {/* Log management buttons */}
             <Box sx={{ display: "flex", gap: 1, mt: 1 }}>

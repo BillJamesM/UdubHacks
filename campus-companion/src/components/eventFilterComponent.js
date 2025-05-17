@@ -49,13 +49,12 @@ export default function EventFilterComponent({ onBookingChange }) {
   const events = [
     {
       id: 1,
-      name: "AI Workshop",
+      name: "LEBRON LEBRON LEBRON James",
       timeframe: "8AM-10AM",
-      location: "Campus 1",
+      location: "LA",
       eventType: "Workshop",
-      date: "May 18, 2025",
-      description:
-        "Learn about the latest advancements in artificial intelligence.",
+      date: "FOREVER",
+      description: "LEBRON RAYMONE JAMES, MY GOAT, MY KING",
     },
     {
       id: 2,
