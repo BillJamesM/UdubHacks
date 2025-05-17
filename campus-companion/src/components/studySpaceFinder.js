@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Grid,
@@ -8,7 +8,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  TextField,
   Checkbox,
   FormGroup,
   FormControlLabel,
@@ -24,23 +23,10 @@ import {
   DialogContentText,
   DialogActions,
   Alert,
-  ToggleButtonGroup,
-  ToggleButton,
   Box,
   CircularProgress,
 } from "@mui/material";
-import {
-  Map as MapIcon,
-  List as ListIcon,
-  LocationOn,
-  People,
-  Event,
-  Check,
-  BookmarkAdd,
-} from "@mui/icons-material";
-import { Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import LeafletMap from "./LeafletMap";
+import { People, Event, Check, BookmarkAdd } from "@mui/icons-material";
 import { getStudySpaces, bookStudySpace } from "../services/studySpaceService";
 
 const StudySpaceFinder = ({ initialFilters = {} }) => {
@@ -55,9 +41,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [bookingStatus, setBookingStatus] = useState(null);
-  const [map, setMap] = useState(null);
-  const [view, setView] = useState("map"); // 'map' or 'list'
-  const mapRef = useRef();
 
   useEffect(() => {
     fetchSpaces();
@@ -130,36 +113,11 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
     { id: "quiet", label: "Quiet" },
   ];
 
-  const flyToSpace = (coordinates) => {
-    if (map) {
-      map.flyTo([coordinates.lat, coordinates.lng], 18);
-    }
-  };
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" component="h2" gutterBottom>
         Find a Study Space
       </Typography>
-
-      {/* View Toggle */}
-      <Box sx={{ mb: 3 }}>
-        <ToggleButtonGroup
-          value={view}
-          exclusive
-          onChange={(e, newView) => newView && setView(newView)}
-          aria-label="view mode"
-        >
-          <ToggleButton value="map" aria-label="map view">
-            <MapIcon sx={{ mr: 1 }} />
-            Map View
-          </ToggleButton>
-          <ToggleButton value="list" aria-label="list view">
-            <ListIcon sx={{ mr: 1 }} />
-            List View
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
 
       <Grid container spacing={3}>
         {/* Filters Column */}
@@ -229,7 +187,7 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
           </Paper>
         </Grid>
 
-        {/* Map/List Column */}
+        {/* List Column */}
         <Grid item xs={12} md={9}>
           {loading ? (
             <Box
@@ -249,50 +207,6 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
             <Alert severity="info">
               No study spaces match your criteria. Try adjusting your filters.
             </Alert>
-          ) : view === "map" ? (
-            <Paper
-              elevation={3}
-              sx={{ height: 500, borderRadius: 2, overflow: "hidden" }}
-            >
-              <LeafletMap
-                center={[40.7128, -74.006]}
-                zoom={15}
-                onMapCreated={setMap}
-              >
-                {spaces.map((space) => (
-                  <Marker
-                    key={space.id}
-                    position={[space.coordinates.lat, space.coordinates.lng]}
-                    eventHandlers={{
-                      click: () => setSelectedSpace(space),
-                    }}
-                  >
-                    <Popup>
-                      <div>
-                        <Typography variant="h6">{space.name}</Typography>
-                        <Typography variant="body2">
-                          {space.building}
-                        </Typography>
-                        <Typography variant="body2">
-                          Capacity: {space.capacity}
-                        </Typography>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          sx={{ mt: 1 }}
-                          onClick={() => {
-                            setSelectedSpace(space);
-                            setBookingDialogOpen(true);
-                          }}
-                        >
-                          Book This Space
-                        </Button>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </LeafletMap>
-            </Paper>
           ) : (
             <Grid container spacing={3}>
               {spaces.map((space) => (
@@ -369,14 +283,7 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                           ))}
                       </Box>
                     </CardContent>
-                    <CardActions
-                      sx={{
-                        mt: "auto",
-                        justifyContent: "space-between",
-                        px: 2,
-                        pb: 2,
-                      }}
-                    >
+                    <CardActions sx={{ mt: "auto", px: 2, pb: 2 }}>
                       <Button
                         variant="contained"
                         size="small"
@@ -385,24 +292,10 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                           setSelectedSpace(space);
                           setBookingDialogOpen(true);
                         }}
+                        fullWidth
                       >
-                        Book
+                        Book This Space
                       </Button>
-                      {view === "list" && (
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<LocationOn />}
-                          onClick={() => {
-                            setView("map");
-                            setTimeout(() => {
-                              flyToSpace(space.coordinates);
-                            }, 100);
-                          }}
-                        >
-                          Map
-                        </Button>
-                      )}
                     </CardActions>
                   </Card>
                 </Grid>
