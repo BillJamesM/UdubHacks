@@ -96,15 +96,6 @@ function App() {
           >
             <Tab icon={<SmartToy />} label="Robot Assistant" />
             <Tab icon={<Map />} label="Study Spaces" />
-            <Tab
-              icon={
-                <Badge badgeContent={bookingsCount} color="secondary">
-                  <BookmarkBorder />
-                </Badge>
-              }
-              label="My Bookings"
-            />
-            <Tab icon={<Event />} label="Events" />
             <Tab icon={<Event />} label="Campus Events" />
             <Tab
               icon={
@@ -114,7 +105,6 @@ function App() {
               }
               label="My Bookings"
             />
-            <Tab icon={<Event />} label="Events" />
           </Tabs>
         </AppBar>
 
@@ -133,16 +123,14 @@ function App() {
               key={`study-finder-${refreshCounter}`}
             />
           )}
-
-          {activeTab === 2 && (
+          {activeTab === 2 && <EventCurator />}
+          {activeTab === 3 && (
             <UserBookings
               userId={userId}
               onBookingChange={handleBookingChange}
               key={`user-bookings-${refreshCounter}`}
             />
           )}
-
-          {activeTab === 3 && <EventCurator />}
         </Container>
       </Box>
     </ThemeProvider>
