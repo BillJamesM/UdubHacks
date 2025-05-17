@@ -16,21 +16,74 @@ import {
   ListItemAvatar,
   Chip,
 } from "@mui/material";
-import { Mic, MicOff, Send, SmartToy, Person } from "@mui/icons-material";
+import {
+  Mic,
+  MicOff,
+  Send,
+  SmartToy,
+  Person,
+  CloudDownload,
+  Delete,
+} from "@mui/icons-material";
 import { getChatResponse } from "../services/studySpaceService"; // Assuming you have an API function to get chat responses
 
-const RobotAssistant = ({ onStudySpaceSearch }) => {
+// Add these imports if you want to save logs to server
+// import { saveConversationLogs } from "../services/logService";
+
+const RobotAssistant = ({ onStudySpaceSearch, onShowBookings }) => {
+    // Generate a unique session ID for this conversation
+  const [sessionId] = useState(() => {
+    const savedSessionId = localStorage.getItem("chatSessionId");
+    return (
+      savedSessionId ||
+      `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    );
+  });
   const [input, setInput] = useState("");
-  const [conversation, setConversation] = useState([
-    {
-      role: "assistant",
-      content: "Hi there! I'm your Campus Companion. How can I help you today?",
-    },
-  ]);
+  const [conversation, setConversation] = useState(() => {
+    // Try to load saved conversation from localStorage
+    const savedConversation = localStorage.getItem(`chatLogs_${sessionId}`);
+    return savedConversation
+      ? JSON.parse(savedConversation)
+      : [
+          {
+            role: "assistant",
+            content:
+              "Hi there! I'm your Campus Companion. How can I help you today?",
+            timestamp: new Date().toISOString(),
+          },
+        ];
+  });
+
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [botMood, setBotMood] = useState("neutral"); // neutral, thinking, happy, confused
   const conversationEndRef = useRef(null);
+
+  // Save session ID to localStorage when it's created
+  useEffect(() => {
+    localStorage.setItem("chatSessionId", sessionId);
+  }, [sessionId]);
+
+  // Save conversation to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      console.log(
+        "Saving conversation to localStorage, length:",
+        conversation.length
+      );
+      localStorage.setItem(
+        `chatLogs_${sessionId}`,
+        JSON.stringify(conversation)
+      );
+
+      // If you want to also save logs to server, uncomment this
+      // saveConversationLogs(sessionId, conversation)
+      //   .catch(err => console.error("Failed to save logs to server:", err));
+    } catch (error) {
+      console.error("Error saving conversation to localStorage:", error);
+    }
+  }, [conversation, sessionId]);
 
   // Speech recognition setup
   const SpeechRecognition =
@@ -44,8 +97,14 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
+      console.log("Speech recognized:", transcript); // For debugging
       setInput(transcript);
-      handleUserInput(transcript);
+
+      // Instead of directly calling handleUserInput, use a timeout to ensure state is updated
+      setTimeout(() => {
+        handleUserInput(transcript);
+      }, 10);
+
       setIsListening(false);
     };
 
@@ -85,8 +144,32 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
   };
 
   const handleUserInput = async (text) => {
-    // Add user message to conversation
-    setConversation((prev) => [...prev, { role: "user", content: text }]);
+    console.log("Handling user input:", text); // Debug logging
+
+    // Ensure we have valid input
+    if (!text || !text.trim()) {
+      console.warn("Empty input received in handleUserInput");
+      return;
+    }
+
+    // Create timestamp at the beginning to ensure consistency
+    const messageTimestamp = new Date().toISOString();
+
+    // Add user message to conversation with timestamp
+    setConversation((prev) => {
+      console.log(
+        "Adding user message to conversation with timestamp:",
+        messageTimestamp
+      );
+      return [
+        ...prev,
+        {
+          role: "user",
+          content: text,
+          timestamp: messageTimestamp,
+        },
+      ];
+    });
 
     // Clear input field
     setInput("");
@@ -94,44 +177,80 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
     // Set bot to "thinking" mode
     setBotMood("thinking");
 
-    // Process the input (simple keyword matching for the hackathon)
-    const response = await processUserInput(text);
+    try {
+      // Process the input (simple keyword matching for the hackathon)
+      const response = await processUserInput(text);
 
-    // Add bot response to conversation
-    setConversation((prev) => [
-      ...prev,
-      { role: "assistant", content: response.text },
-    ]);
+      // Create response timestamp
+      const responseTimestamp = new Date().toISOString();
 
-    // Text to speech for response
-    speak(response.text);
+      // Add bot response to conversation with timestamp
+      setConversation((prev) => {
+        console.log(
+          "Adding bot response to conversation with timestamp:",
+          responseTimestamp
+        );
+        return [
+          ...prev,
+          {
+            role: "assistant",
+            content: response.text,
+            timestamp: responseTimestamp,
+            action: response.action,
+            filters: response.filters,
+          },
+        ];
+      });
+
+      // Text to speech for response
+      speak(response.text);
 
     // Execute any actions from the response
     if (response.action === "showStudySpaces") {
       onStudySpaceSearch(response.filters || {});
     }
 
-    // Reset bot mood
-    setBotMood(response.mood || "neutral");
+     // Action: Show Bookings
+    if (response.action === "showBookings") {
+      if (typeof onShowBookings === "function") {
+        onShowBookings();
+      }
+    }
+
+      // Reset bot mood
+      setBotMood(response.mood || "neutral");
+    } catch (error) {
+      console.error("Error processing user input:", error);
+
+      // Add error message to conversation
+      setConversation((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I'm sorry, I encountered an error processing your request. Please try again.",
+          timestamp: new Date().toISOString(),
+          error: true,
+        },
+      ]);
+
+      setBotMood("confused");
+    }
   };
 
   const processUserInput = async (text) => {
-    const responseText = await getChatResponse(text);
+    const response = await getChatResponse(text);
     const lowerText = text.toLowerCase();
 
-    if (
-    lowerText.includes("study") ||
-    lowerText.includes("library") ||
-    lowerText.includes("quiet place") ||
-    lowerText.includes("room")
-    ) {
-    const filters = {
-      noiseLevel: lowerText.includes("quiet")
-        ? "quiet"
-        : lowerText.includes("collaborative")
-        ? "collaborative"
-        : "any",
-    };
+    // If the action is for study spaces, apply filter logic
+    if (response.action === "showStudySpaces") {
+      const filters = {
+        noiseLevel: lowerText.includes("quiet")
+          ? "quiet"
+          : lowerText.includes("collaborative")
+          ? "collaborative"
+          : "any",
+      };
 
     return {
       text: responseText,     // now using the actual smart reply
@@ -141,10 +260,11 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
     };
   }
 
-    // Fallback for other queries
+    // For other cases like "showBookings", just return the response
     return {
-      text: responseText,
-      mood: "neutral",
+      text: response.text,
+      action: response.action,
+      mood: response.mood || "neutral",
     };
   };
 
@@ -170,8 +290,47 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
     }
   };
 
+  // Function to download chat logs as JSON
+  const downloadChatLogs = () => {
+    const dataStr = JSON.stringify(conversation, null, 2);
+    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(
+      dataStr
+    )}`;
+
+    const exportFileDefaultName = `campus-companion-chat-${new Date().toISOString()}.json`;
+
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
+    linkElement.click();
+  };
+
+  // Function to clear chat history
+  const clearChatHistory = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to clear the chat history? This cannot be undone."
+      )
+    ) {
+      const initialMessage = {
+        role: "assistant",
+        content:
+          "Hi there! I'm your Campus Companion. How can I help you today?",
+        timestamp: new Date().toISOString(),
+      };
+
+      setConversation([initialMessage]);
+
+      // Generate a new session ID
+      const newSessionId = `session_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      localStorage.setItem("chatSessionId", newSessionId);
+    }
+  };
+
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
       <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
         <Grid container spacing={3}>
           {/* Robot Avatar */}
@@ -237,10 +396,28 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
               variant="body2"
               color="text.secondary"
               align="center"
-              sx={{ px: 2 }}
+              sx={{ px: 2, mb: 2 }}
             >
               Ask me to find you a study space, or help with campus information!
             </Typography>
+
+            {/* Session ID display */}
+            {/* <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+              Session ID: {sessionId.substring(0, 8)}...
+            </Typography> */}
+
+            {/* Log management buttons */}
+            <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<Delete />}
+                onClick={clearChatHistory}
+              >
+                Clear
+              </Button>
+            </Box>
           </Grid>
 
           {/* Conversation Area */}
@@ -306,6 +483,14 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
                             primaryTypographyProps={{
                               variant: "body2",
                             }}
+                            secondary={new Date(
+                              message.timestamp
+                            ).toLocaleTimeString()}
+                            secondaryTypographyProps={{
+                              variant: "caption",
+                              align: "right",
+                              component: "div",
+                            }}
                           />
                         </Grid>
                       </Grid>
@@ -316,7 +501,7 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
               </List>
             </Paper>
 
-            {/* Input Area */}
+            {/* Input Area - Centered and Full Width */}
             <Box
               component="form"
               onSubmit={(e) => {
@@ -325,9 +510,19 @@ const RobotAssistant = ({ onStudySpaceSearch }) => {
                   handleUserInput(input);
                 }
               }}
+              sx={{
+                width: "100%",
+                maxWidth: "1600px",
+                mx: "auto",
+              }}
             >
-              <Grid container spacing={1} alignItems="center">
-                <Grid item xs>
+              <Grid
+                container
+                spacing={1}
+                alignItems="center"
+                sx={{ width: "100%" }}
+              >
+                <Grid item md>
                   <TextField
                     fullWidth
                     value={input}
