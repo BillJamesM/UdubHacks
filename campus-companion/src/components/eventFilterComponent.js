@@ -30,12 +30,12 @@ export default function EventFilterComponent() {
   const events = [
     {
       id: 0,
-      name: 'UWT Hackathon',
+      name: 'UWT LEBRON Hackathon',
       timeframe: '10AM-6PM',
       location: 'SNO',
       eventType: 'Workshop',
       date: '2025-05-17',
-      description: 'Join the ultimate Hackathon happening now!',
+      description: 'LEBRON JAMES MY GOAT MY KING!',
     },
     {
       id: 1,
