@@ -59,6 +59,14 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
   };
 
   const handleBooking = async (spaceId, timeSlot) => {
+    if (!timeSlot) {
+      setBookingStatus({
+        severity: "error",
+        message: "Please select a time slot",
+      });
+      return;
+    }
+
     setBookingStatus({ severity: "info", message: "Creating your booking..." });
 
     try {
@@ -77,12 +85,11 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
           message: "Study space booked successfully! Added to your calendar.",
         });
 
-        // In a real app, update the UI to reflect the new booking
-        // For demo, we'll just close the dialog after a delay
+        // Refresh the spaces to reflect the booking immediately
         setTimeout(() => {
           setBookingDialogOpen(false);
           setBookingStatus(null);
-          fetchSpaces(); // Refresh the spaces to reflect the booking
+          fetchSpaces(); // This now should show updated availability
         }, 2000);
       }
     } catch (error) {
@@ -103,6 +110,18 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
         return { ...prev, features: [...features, feature] };
       }
     });
+  };
+
+  // Map feature IDs from the filter to actual feature names in the data
+  const mapFeatureId = (featureId) => {
+    const featureMap = {
+      whiteboard: "whiteboard",
+      monitors: "monitors",
+      power_outlets: "power outlets",
+      natural_light: "natural light",
+      quiet: "soundproofing", // Mapping "quiet" filter to "soundproofing" feature
+    };
+    return featureMap[featureId] || featureId;
   };
 
   const allFeatures = [
@@ -184,6 +203,16 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                 />
               ))}
             </FormGroup>
+
+            {/* Add a refresh button */}
+            <Button
+              variant="outlined"
+              fullWidth
+              sx={{ mt: 2 }}
+              onClick={fetchSpaces}
+            >
+              Refresh Results
+            </Button>
           </Paper>
         </Grid>
 
@@ -225,7 +254,7 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                   >
                     <CardMedia
                       component="img"
-                      height="300"
+                      height="200"
                       image={space.imageUrl}
                       alt={space.name}
                     />
@@ -281,6 +310,13 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                               clickable
                             />
                           ))}
+                        {space.availability[0].slots.filter(
+                          (slot) => slot.available
+                        ).length === 0 && (
+                          <Typography variant="body2" color="text.secondary">
+                            No available times for today
+                          </Typography>
+                        )}
                       </Box>
                     </CardContent>
                     <CardActions sx={{ mt: "auto", px: 2, pb: 2 }}>
@@ -293,6 +329,11 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                           setBookingDialogOpen(true);
                         }}
                         fullWidth
+                        disabled={
+                          space.availability[0].slots.filter(
+                            (slot) => slot.available
+                          ).length === 0
+                        }
                       >
                         Book This Space
                       </Button>
@@ -328,7 +369,10 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                 />
               </Box>
 
-              {!selectedSpace.selectedSlot && (
+              {(!selectedSpace.selectedSlot ||
+                !selectedSpace.availability[0].slots.find(
+                  (slot) => slot.time === selectedSpace.selectedSlot
+                )?.available) && (
                 <>
                   <Typography variant="subtitle1" gutterBottom>
                     Select a Time Slot:
@@ -361,24 +405,34 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
                           }
                         />
                       ))}
+                    {selectedSpace.availability[0].slots.filter(
+                      (slot) => slot.available
+                    ).length === 0 && (
+                      <Typography variant="body2" color="error">
+                        No available times for this space today
+                      </Typography>
+                    )}
                   </Box>
                 </>
               )}
 
-              {selectedSpace.selectedSlot && (
-                <>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <Event sx={{ mr: 1 }} />
-                    <Typography>
-                      Selected Time:{" "}
-                      <strong>{selectedSpace.selectedSlot}</strong>
-                    </Typography>
-                  </Box>
-                  <DialogContentText>
-                    Confirm your booking for this space?
-                  </DialogContentText>
-                </>
-              )}
+              {selectedSpace.selectedSlot &&
+                selectedSpace.availability[0].slots.find(
+                  (slot) => slot.time === selectedSpace.selectedSlot
+                )?.available && (
+                  <>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                      <Event sx={{ mr: 1 }} />
+                      <Typography>
+                        Selected Time:{" "}
+                        <strong>{selectedSpace.selectedSlot}</strong>
+                      </Typography>
+                    </Box>
+                    <DialogContentText>
+                      Confirm your booking for this space?
+                    </DialogContentText>
+                  </>
+                )}
 
               {bookingStatus && (
                 <Alert severity={bookingStatus.severity} sx={{ mt: 2 }}>
@@ -404,6 +458,9 @@ const StudySpaceFinder = ({ initialFilters = {} }) => {
             }
             disabled={
               !selectedSpace?.selectedSlot ||
+              !selectedSpace?.availability[0].slots.find(
+                (slot) => slot.time === selectedSpace.selectedSlot
+              )?.available ||
               bookingStatus?.severity === "success"
             }
             startIcon={<Check />}
